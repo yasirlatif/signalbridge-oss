@@ -1,0 +1,17 @@
+﻿api:
+  base_url: "https://example.com/api/tags"
+  method: "GET"
+  headers:
+    Authorization: "Bearer your-token-here"
+  timeout_seconds: 30
+
+polling:
+  interval_seconds: 60
+
+validation:
+  min_value: -100.0
+  max_value: 1000.0
+  allow_negative: true
+
+output:
+  csv_path: "output/validated.csv"

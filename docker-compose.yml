@@ -1,0 +1,8 @@
+﻿version: "3.9"
+services:
+  signalbridge:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: bash -c "pip install -r requirements.txt && pytest"
