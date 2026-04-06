@@ -4,6 +4,7 @@ def validate_value(
     max_value: float | None = None,
     allow_negative: bool = True,
 ) -> tuple[bool, list[str]]:
+    """Validate a numeric value against simple threshold rules."""
     issues = []
 
     if not allow_negative and value < 0:

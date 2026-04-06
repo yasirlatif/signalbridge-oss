@@ -1,8 +1,11 @@
-﻿from pathlib import Path
+from pathlib import Path
+
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 class ApiConfig(BaseModel):
+    """Configuration for the upstream REST API."""
+
     base_url: str
     method: str = "GET"
     headers: dict[str, str] = Field(default_factory=dict)
@@ -12,10 +15,14 @@ class ApiConfig(BaseModel):
 
 
 class PollingConfig(BaseModel):
+    """Polling interval settings."""
+
     interval_seconds: int = 60
 
 
 class ValidationConfig(BaseModel):
+    """Rule settings applied to numeric values."""
+
     min_value: float
     max_value: float
     allow_negative: bool = True
@@ -28,10 +35,14 @@ class ValidationConfig(BaseModel):
 
 
 class OutputConfig(BaseModel):
+    """Output sink configuration."""
+
     csv_path: Path
 
 
 class AppConfig(BaseModel):
+    """Top-level application configuration."""
+
     api: ApiConfig
     polling: PollingConfig
     validation: ValidationConfig
@@ -39,6 +50,7 @@ class AppConfig(BaseModel):
 
 
 def load_config(path: str | Path) -> AppConfig:
+    """Load and validate application configuration from a YAML file."""
     config_path = Path(path)
     with config_path.open("r", encoding="utf-8") as file:
         data = yaml.safe_load(file) or {}

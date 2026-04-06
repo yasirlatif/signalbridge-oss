@@ -1,7 +1,9 @@
 import csv
 from pathlib import Path
 
+
 def write_rows(path: str | Path, rows: list[dict]) -> Path:
+    """Write a list of dictionary rows to CSV and return the destination path."""
     rows = list(rows)
     output_path = Path(path)
 

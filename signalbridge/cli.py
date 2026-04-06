@@ -16,6 +16,7 @@ def run_demo(
     config_path: str | Path,
     output_path: str | Path | None = None,
 ) -> dict[str, int | Path]:
+    """Run the local sample flow and return a short execution summary."""
     config = load_config(config_path)
     payload_file = Path(payload_path)
 
@@ -26,7 +27,7 @@ def run_demo(
     flagged_records = 0
 
     for record in records:
-        is_valid, _issues = validate_value(
+        is_valid, _ = validate_value(
             record["value"],
             min_value=config.validation.min_value,
             max_value=config.validation.max_value,
@@ -56,7 +57,7 @@ def run_demo(
 
 @app.command()
 def info() -> None:
-    """Show basic project info."""
+    """Show a short project description."""
     typer.echo("SignalBridge OSS")
     typer.echo("Resilient time-series API ingestion and validation toolkit.")
 
@@ -68,7 +69,7 @@ def validate(
         help="Path to the YAML configuration file.",
     )
 ) -> None:
-    """Validate a YAML configuration file."""
+    """Validate a configuration file and show the resolved core settings."""
     config = load_config(config_path)
     typer.echo(f"Configuration is valid: {config_path}")
     typer.echo(f"API URL: {config.api.base_url}")
@@ -91,7 +92,7 @@ def demo_run(
         help="Optional CSV output path override.",
     ),
 ) -> None:
-    """Run the local demo flow with sample files."""
+    """Run the bundled sample payload through normalization, validation, and CSV output."""
     summary = run_demo(payload_path, config_path, output_path or None)
 
     typer.echo(f"Demo output: {summary['output_path']}")
