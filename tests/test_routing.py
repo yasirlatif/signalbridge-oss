@@ -17,6 +17,8 @@ def test_route_records_splits_records_by_outcome() -> None:
     )
 
     assert len(routed.raw_records) == 4
+    assert routed.duplicate_records == 0
+    assert routed.out_of_order_records == 0
     assert routed.validated_records == [
         {
             "tag": "pump_vibration_x",
@@ -61,6 +63,8 @@ def test_route_records_flags_duplicate_and_out_of_order_timestamps() -> None:
 
     routed = route_records(records)
 
+    assert routed.duplicate_records == 1
+    assert routed.out_of_order_records == 1
     assert routed.validated_records == [
         {
             "tag": "pump_vibration_x",

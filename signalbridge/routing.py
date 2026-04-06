@@ -13,6 +13,8 @@ class RoutedRecords:
     raw_records: list[dict[str, Any]] = field(default_factory=list)
     validated_records: list[dict[str, Any]] = field(default_factory=list)
     flagged_records: list[dict[str, Any]] = field(default_factory=list)
+    duplicate_records: int = 0
+    out_of_order_records: int = 0
 
 
 def _flag_record(
@@ -75,12 +77,14 @@ def route_records(
         routing_issues: list[str] = []
 
         if record_key in seen_keys:
+            routed.duplicate_records += 1
             routing_issues.append(
                 f"duplicate record for tag '{tag}' at timestamp '{normalized_timestamp}'"
             )
 
         previous_timestamp = last_timestamp_by_tag.get(tag)
         if previous_timestamp is not None and normalized_datetime < previous_timestamp:
+            routed.out_of_order_records += 1
             routing_issues.append(
                 f"out-of-order timestamp for tag '{tag}': '{normalized_timestamp}' arrived after '{previous_timestamp.isoformat().replace('+00:00', 'Z')}'"
             )

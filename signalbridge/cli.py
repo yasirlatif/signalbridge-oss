@@ -10,6 +10,20 @@ from signalbridge.sinks.csv_sink import write_rows
 app = typer.Typer(help="SignalBridge OSS CLI")
 
 
+def _resolve_demo_output_paths(output_path: str | Path | None) -> tuple[Path, Path]:
+    """Resolve predictable validated and flagged output paths for the demo flow."""
+    validated_path = Path(output_path) if output_path is not None else Path("output/validated.csv")
+    if validated_path.suffix == "":
+        validated_path = validated_path.with_suffix(".csv")
+
+    if validated_path.stem == "validated":
+        flagged_path = validated_path.with_name(f"flagged{validated_path.suffix}")
+    else:
+        flagged_path = validated_path.with_name(f"{validated_path.stem}.flagged{validated_path.suffix}")
+
+    return validated_path, flagged_path
+
+
 def run_demo(
     payload_path: str | Path,
     config_path: str | Path,
@@ -29,15 +43,21 @@ def run_demo(
         allow_negative=config.validation.allow_negative,
     )
 
-    destination = Path(output_path) if output_path is not None else config.output.csv_path
-    write_rows(destination, routed.validated_records)
+    validated_output_path, flagged_output_path = _resolve_demo_output_paths(
+        output_path if output_path is not None else config.output.csv_path
+    )
+    write_rows(validated_output_path, routed.validated_records)
+    write_rows(flagged_output_path, routed.flagged_records)
 
     return {
         "total_records": len(routed.raw_records),
         "raw_records": len(routed.raw_records),
         "valid_records": len(routed.validated_records),
         "flagged_records": len(routed.flagged_records),
-        "output_path": destination,
+        "duplicate_records": routed.duplicate_records,
+        "out_of_order_records": routed.out_of_order_records,
+        "validated_output_path": validated_output_path,
+        "flagged_output_path": flagged_output_path,
     }
 
 
@@ -81,11 +101,14 @@ def demo_run(
     """Run the bundled sample payload through normalization, validation, and CSV output."""
     summary = run_demo(payload_path, config_path, output_path or None)
 
-    typer.echo(f"Demo output: {summary['output_path']}")
+    typer.echo("Execution summary")
     typer.echo(f"Total records: {summary['total_records']}")
-    typer.echo(f"Raw records: {summary['raw_records']}")
     typer.echo(f"Valid records: {summary['valid_records']}")
     typer.echo(f"Flagged records: {summary['flagged_records']}")
+    typer.echo(f"Duplicate records: {summary['duplicate_records']}")
+    typer.echo(f"Out-of-order records: {summary['out_of_order_records']}")
+    typer.echo(f"Validated output: {summary['validated_output_path']}")
+    typer.echo(f"Flagged output: {summary['flagged_output_path']}")
 
 
 if __name__ == "__main__":
