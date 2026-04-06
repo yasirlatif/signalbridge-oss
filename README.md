@@ -57,34 +57,48 @@ pip install -e .[test]
 ### Run the local demo
 
 ```bash
-signalbridge validate
-signalbridge demo-run
+signalbridge validate examples/config.sample.yaml
+signalbridge demo-run examples/sample_payload.json examples/config.sample.yaml --output output/demo.csv
 pytest
 ```
 
-The demo command reads the sample payload in `examples/sample_payload.json`, applies validation settings from `examples/config.sample.yaml`, and writes valid records to the configured CSV path.
+The demo command reads the sample payload in `examples/sample_payload.json`, applies validation settings from `examples/config.sample.yaml`, and writes validated and flagged outputs to predictable files.
 
-## Minimal architecture overview
+## Why anomaly preservation matters
+
+Operational data is often most useful at the edges of normal behavior. Spikes, missing intervals, duplicate timestamps, and out-of-order records can indicate upstream system faults, device problems, ingestion bugs, or real process changes.
+
+If a pipeline silently drops those records, downstream users lose the ability to audit decisions, debug ingestion behavior, and compare validated output against the original source stream. SignalBridge OSS preserves anomalous records explicitly so they remain available for review and future analysis.
+
+## Output states
+
+SignalBridge OSS treats record state as an explicit part of the pipeline:
+
+- Raw records: input data as received from the source before normalization or validation.
+- Validated records: records that passed normalization and rule checks and are suitable for downstream sinks.
+- Flagged records: records that were parsed but failed validation or routing checks such as duplicate timestamps, out-of-order arrival, or malformed timestamp values.
+
+This separation keeps accepted output usable while preserving enough context to understand what was rejected and why.
+
+## Architecture flow
 
 SignalBridge OSS is organized as a small ingestion pipeline with explicit stages:
 
 - `signalbridge/connectors/`: data acquisition from upstream systems
 - `signalbridge/normalization/`: timestamp and record-shape cleanup
 - `signalbridge/validation/`: rule checks and quality decisions
-- `signalbridge/sinks/`: output adapters such as CSV
+- `signalbridge/routing.py`: record classification into raw, validated, and flagged outputs
+- `signalbridge/sinks/`: output adapters such as CSV and JSONL
 - `signalbridge/cli.py`: local operational entry points for validation and demo execution
 
-In the current flow, a payload is read from a source, timestamps are normalized, values are checked against validation rules, accepted rows are written to a sink, and invalid records are counted rather than silently ignored.
+Current CLI flow:
 
-## Record states
-
-SignalBridge OSS treats record state as an explicit part of the pipeline:
-
-- Raw records: input data exactly as received from the source system before normalization or rule evaluation.
-- Validated records: records that passed normalization and configured validation checks and are safe to write to downstream sinks.
-- Flagged records: records that were parsed successfully but failed one or more checks and should remain visible for audit, debugging, or future review.
-
-This separation is important for operational transparency. A data pipeline should not make anomalous inputs disappear without leaving a trace.
+1. load configuration
+2. read the local sample payload
+3. normalize timestamps
+4. apply validation and routing checks
+5. write validated and flagged outputs to separate files
+6. print a short execution summary
 
 ## Example command sequence
 
@@ -92,6 +106,7 @@ This separation is important for operational transparency. A data pipeline shoul
 signalbridge validate examples/config.sample.yaml
 signalbridge demo-run examples/sample_payload.json examples/config.sample.yaml --output output/demo.csv
 type output\demo.csv
+type output\demo.flagged.csv
 ```
 
 ## Planned features
@@ -128,10 +143,6 @@ type output\demo.csv
 - Keep configuration simple and auditable
 - Make imperfect upstream behavior visible
 - Support analytics and ML readiness from the start
-
-## Quickstart
-
-Coming in the first release.
 
 ## Roadmap
 

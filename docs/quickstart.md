@@ -37,5 +37,6 @@ pytest
 - loads validation settings from `examples/config.sample.yaml`
 - normalizes timestamps to UTC ISO format
 - validates numeric values against configured thresholds
-- writes valid rows to CSV
+- routes records into validated and flagged outputs
+- writes `output/demo.csv` and `output/demo.flagged.csv`
 - prints a short record summary
