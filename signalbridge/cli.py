@@ -1,5 +1,8 @@
 ﻿import typer
 
+from signalbridge.config import load_config
+
+
 app = typer.Typer(help="SignalBridge OSS CLI")
 
 
@@ -12,8 +15,9 @@ def info() -> None:
 
 @app.command()
 def validate(config_path: str = "examples/config.sample.yaml") -> None:
-    """Validate the sample configuration file."""
-    typer.echo(f"Configuration file looks okay: {config_path}")
+    """Validate a configuration file."""
+    load_config(config_path)
+    typer.echo(f"Configuration is valid: {config_path}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,9 @@
+api:
+  base_url: "https://example.com/api/tags"
+polling:
+  interval_seconds: 60
+validation:
+  min_value: 10
+  max_value: 1
+output:
+  csv_path: "output/validated.csv"
