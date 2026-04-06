@@ -85,16 +85,16 @@ def route_records(
                 f"out-of-order timestamp for tag '{tag}': '{normalized_timestamp}' arrived after '{previous_timestamp.isoformat().replace('+00:00', 'Z')}'"
             )
 
-        is_valid, validation_issues = validate_value(
+        validation_result = validate_value(
             raw_record["value"],
             min_value=min_value,
             max_value=max_value,
             allow_negative=allow_negative,
         )
 
-        issues = routing_issues + validation_issues
+        issues = routing_issues + validation_result.issues
         if issues:
-            if routing_issues and validation_issues:
+            if routing_issues and validation_result.issues:
                 routing_reason = "routing_and_validation_failed"
             elif routing_issues:
                 routing_reason = "routing_failed"

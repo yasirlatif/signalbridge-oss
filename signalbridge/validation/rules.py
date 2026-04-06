@@ -1,9 +1,26 @@
+from dataclasses import dataclass, field
+
+
+@dataclass
+class ValidationResult:
+    """Structured result for a validation check."""
+
+    is_valid: bool
+    issues: list[str] = field(default_factory=list)
+    severity: str = "none"
+
+    def __iter__(self):
+        """Allow tuple-style unpacking for existing callers."""
+        yield self.is_valid
+        yield self.issues
+
+
 def validate_value(
     value: float,
     min_value: float | None = None,
     max_value: float | None = None,
     allow_negative: bool = True,
-) -> tuple[bool, list[str]]:
+) -> ValidationResult:
     """Validate a numeric value against simple threshold rules."""
     issues = []
 
@@ -14,4 +31,8 @@ def validate_value(
     if max_value is not None and value > max_value:
         issues.append(f"value above maximum threshold: {max_value}")
 
-    return (len(issues) == 0, issues)
+    return ValidationResult(
+        is_valid=len(issues) == 0,
+        issues=issues,
+        severity="error" if issues else "none",
+    )
