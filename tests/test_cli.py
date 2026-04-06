@@ -26,6 +26,7 @@ def test_demo_run_command_processes_sample_files() -> None:
 
     assert result.exit_code == 0
     assert "Total records: 1" in result.stdout
+    assert "Raw records: 1" in result.stdout
     assert "Valid records: 1" in result.stdout
     assert "Flagged records: 0" in result.stdout
 
@@ -61,6 +62,7 @@ def test_run_demo_filters_flagged_records_and_writes_csv() -> None:
                 summary = run_demo("payload.json", "config.yaml")
 
     assert summary["total_records"] == 2
+    assert summary["raw_records"] == 2
     assert summary["valid_records"] == 1
     assert summary["flagged_records"] == 1
     assert written_rows == [

@@ -4,9 +4,8 @@ from pathlib import Path
 import typer
 
 from signalbridge.config import load_config
-from signalbridge.normalization.timestamps import normalize_timestamp
+from signalbridge.routing import route_records
 from signalbridge.sinks.csv_sink import write_rows
-from signalbridge.validation.rules import validate_value
 
 app = typer.Typer(help="SignalBridge OSS CLI")
 
@@ -23,34 +22,21 @@ def run_demo(
     with payload_file.open("r", encoding="utf-8-sig") as file:
         records = json.load(file)
 
-    valid_rows = []
-    flagged_records = 0
-
-    for record in records:
-        is_valid, _ = validate_value(
-            record["value"],
-            min_value=config.validation.min_value,
-            max_value=config.validation.max_value,
-            allow_negative=config.validation.allow_negative,
-        )
-        if is_valid:
-            valid_rows.append(
-                {
-                    "tag": record["tag"],
-                    "timestamp": normalize_timestamp(record["timestamp"]),
-                    "value": record["value"],
-                }
-            )
-        else:
-            flagged_records += 1
+    routed = route_records(
+        records,
+        min_value=config.validation.min_value,
+        max_value=config.validation.max_value,
+        allow_negative=config.validation.allow_negative,
+    )
 
     destination = Path(output_path) if output_path is not None else config.output.csv_path
-    write_rows(destination, valid_rows)
+    write_rows(destination, routed.validated_records)
 
     return {
-        "total_records": len(records),
-        "valid_records": len(valid_rows),
-        "flagged_records": flagged_records,
+        "total_records": len(routed.raw_records),
+        "raw_records": len(routed.raw_records),
+        "valid_records": len(routed.validated_records),
+        "flagged_records": len(routed.flagged_records),
         "output_path": destination,
     }
 
@@ -97,6 +83,7 @@ def demo_run(
 
     typer.echo(f"Demo output: {summary['output_path']}")
     typer.echo(f"Total records: {summary['total_records']}")
+    typer.echo(f"Raw records: {summary['raw_records']}")
     typer.echo(f"Valid records: {summary['valid_records']}")
     typer.echo(f"Flagged records: {summary['flagged_records']}")
 
