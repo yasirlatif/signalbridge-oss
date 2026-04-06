@@ -2,7 +2,6 @@
 
 from signalbridge.config import load_config
 
-
 app = typer.Typer(help="SignalBridge OSS CLI")
 
 
@@ -14,10 +13,17 @@ def info() -> None:
 
 
 @app.command()
-def validate(config_path: str = "examples/config.sample.yaml") -> None:
-    """Validate a configuration file."""
-    load_config(config_path)
+def validate(
+    config_path: str = typer.Argument(
+        "examples/config.sample.yaml",
+        help="Path to the YAML configuration file.",
+    )
+) -> None:
+    """Validate a YAML configuration file."""
+    config = load_config(config_path)
     typer.echo(f"Configuration is valid: {config_path}")
+    typer.echo(f"API URL: {config.api.base_url}")
+    typer.echo(f"CSV Output: {config.output.csv_path}")
 
 
 if __name__ == "__main__":

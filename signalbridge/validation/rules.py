@@ -1,4 +1,9 @@
-﻿def validate_value(value: float, min_value=None, max_value=None, allow_negative=True):
+def validate_value(
+    value: float,
+    min_value: float | None = None,
+    max_value: float | None = None,
+    allow_negative: bool = True,
+) -> tuple[bool, list[str]]:
     issues = []
 
     if not allow_negative and value < 0:
