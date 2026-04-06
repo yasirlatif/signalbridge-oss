@@ -28,6 +28,72 @@ SignalBridge OSS treats these as first-class engineering concerns.
 - Store outputs in analytics-ready sinks
 - Provide a reusable foundation for downstream profiling and ML workflows
 
+## Current scope
+
+The current repository provides a small but working local flow:
+
+- load YAML configuration
+- fetch JSON from REST endpoints
+- normalize timestamps to UTC ISO format
+- validate numeric values with simple rule checks
+- write accepted records to CSV
+- run a local demo without external services
+
+## Quickstart
+
+### Requirements
+
+- Python 3.11+
+
+### Setup
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+pip install -e .[test]
+```
+
+### Run the local demo
+
+```bash
+signalbridge validate
+signalbridge demo-run
+pytest
+```
+
+The demo command reads the sample payload in `examples/sample_payload.json`, applies validation settings from `examples/config.sample.yaml`, and writes valid records to the configured CSV path.
+
+## Minimal architecture overview
+
+SignalBridge OSS is organized as a small ingestion pipeline with explicit stages:
+
+- `signalbridge/connectors/`: data acquisition from upstream systems
+- `signalbridge/normalization/`: timestamp and record-shape cleanup
+- `signalbridge/validation/`: rule checks and quality decisions
+- `signalbridge/sinks/`: output adapters such as CSV
+- `signalbridge/cli.py`: local operational entry points for validation and demo execution
+
+In the current flow, a payload is read from a source, timestamps are normalized, values are checked against validation rules, accepted rows are written to a sink, and invalid records are counted rather than silently ignored.
+
+## Record states
+
+SignalBridge OSS treats record state as an explicit part of the pipeline:
+
+- Raw records: input data exactly as received from the source system before normalization or rule evaluation.
+- Validated records: records that passed normalization and configured validation checks and are safe to write to downstream sinks.
+- Flagged records: records that were parsed successfully but failed one or more checks and should remain visible for audit, debugging, or future review.
+
+This separation is important for operational transparency. A data pipeline should not make anomalous inputs disappear without leaving a trace.
+
+## Example command sequence
+
+```bash
+signalbridge validate examples/config.sample.yaml
+signalbridge demo-run examples/sample_payload.json examples/config.sample.yaml --output output/demo.csv
+type output\demo.csv
+```
+
 ## Planned features
 
 ### Connectors
