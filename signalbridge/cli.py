@@ -111,5 +111,22 @@ def demo_run(
     typer.echo(f"Flagged output: {summary['flagged_output_path']}")
 
 
+@app.command()
+def backfill(
+    config_path: str = typer.Argument(
+        "examples/config.sample.yaml",
+        help="Path to the YAML configuration file.",
+    ),
+    window: str = typer.Argument(
+        ...,
+        help="Requested time window, for example 2026-04-01T00:00:00Z/2026-04-02T00:00:00Z.",
+    ),
+) -> None:
+    """Show the planned backfill mode inputs."""
+    typer.echo("Backfill mode is planned but not implemented yet.")
+    typer.echo(f"Config path: {config_path}")
+    typer.echo(f"Requested window: {window}")
+
+
 if __name__ == "__main__":
     app()

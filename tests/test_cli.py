@@ -116,3 +116,19 @@ def test_run_demo_reports_duplicate_and_out_of_order_counts() -> None:
     assert summary["flagged_records"] == 2
     assert summary["duplicate_records"] == 1
     assert summary["out_of_order_records"] == 1
+
+
+def test_backfill_command_reports_stub_inputs() -> None:
+    result = runner.invoke(
+        app,
+        [
+            "backfill",
+            "examples/config.sample.yaml",
+            "2026-04-01T00:00:00Z/2026-04-02T00:00:00Z",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Backfill mode is planned but not implemented yet." in result.stdout
+    assert "Config path: examples/config.sample.yaml" in result.stdout
+    assert "Requested window: 2026-04-01T00:00:00Z/2026-04-02T00:00:00Z" in result.stdout
